@@ -111,6 +111,7 @@ export default function MentorJobs() {
           <p className="text-slate-400 mt-2">Manage job postings to evaluate candidates against.</p>
         </div>
         <button
+          id="job-create-btn"
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm transition-colors shadow-lg hover:shadow-violet-600/20"
         >
@@ -220,6 +221,7 @@ export default function MentorJobs() {
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Job Title *</label>
                   <input
+                    id="job-title"
                     type="text"
                     required
                     value={title}
@@ -233,6 +235,7 @@ export default function MentorJobs() {
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Department</label>
                     <input
+                      id="job-department"
                       type="text"
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
@@ -243,6 +246,7 @@ export default function MentorJobs() {
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Location</label>
                     <input
+                      id="job-location"
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
@@ -256,6 +260,7 @@ export default function MentorJobs() {
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Job Type</label>
                     <select
+                      id="job-type"
                       value={type}
                       onChange={(e) => setType(e.target.value)}
                       className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violetAccent/50"
@@ -269,6 +274,7 @@ export default function MentorJobs() {
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Experience (Required)</label>
                     <input
+                      id="job-experience"
                       type="text"
                       value={experience}
                       onChange={(e) => setExperience(e.target.value)}
@@ -281,6 +287,7 @@ export default function MentorJobs() {
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Skills Required (Comma separated)</label>
                   <input
+                    id="job-skills"
                     type="text"
                     value={skills}
                     onChange={(e) => setSkills(e.target.value)}
@@ -292,6 +299,7 @@ export default function MentorJobs() {
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Job Description *</label>
                   <textarea
+                    id="job-description"
                     required
                     rows={4}
                     value={description}
@@ -310,6 +318,7 @@ export default function MentorJobs() {
                     Cancel
                   </button>
                   <button
+                    id="job-submit-btn"
                     type="submit"
                     disabled={saving}
                     className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm transition-colors text-center disabled:opacity-50"

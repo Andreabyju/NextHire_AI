@@ -15,18 +15,26 @@ export default function MentorDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [profileData, accessData, candidatesData] = await Promise.all([
+        const [profileData, accessData] = await Promise.all([
           mentorApi.getProfile(),
           mentorApi.getAccessStatus(),
-          mentorApi.getCandidates()
         ]);
         setProfile(profileData.mentor);
         setAccess(accessData);
-        setCandidatesCount(candidatesData.candidates?.length || 0);
       } catch (err) {
         setError(err.message || 'Failed to load dashboard data');
+        return;
       } finally {
         setLoading(false);
+      }
+
+      // Candidate count is only available to approved + subscribed mentors.
+      // Fetch it separately so a 403 does not crash the dashboard for pending mentors.
+      try {
+        const candidatesData = await mentorApi.getCandidates();
+        setCandidatesCount(candidatesData.total ?? candidatesData.candidates?.length ?? 0);
+      } catch {
+        // Access denied (pending / no subscription) — count stays at 0
       }
     };
     fetchData();

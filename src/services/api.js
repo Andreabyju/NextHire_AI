@@ -22,7 +22,7 @@ export async function fetchWithAuth(endpoint, options = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `API request failed with status ${response.status}`);
+    throw new Error(errorData.error || errorData.message || `API request failed with status ${response.status}`);
   }
 
   return response.json();

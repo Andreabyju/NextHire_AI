@@ -338,6 +338,7 @@ export default function MentorLogin() {
 
               {/* Sign in */}
               <button
+                id="mentor-login-btn"
                 type="submit"
                 disabled={submitting}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-all duration-300 disabled:opacity-50 mt-1"

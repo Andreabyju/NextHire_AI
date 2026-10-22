@@ -21,6 +21,10 @@ const checkRecruiterAccess = async (userId) => {
         };
     }
 
+    // ==========================================
+    // ADMIN APPROVAL CHECK
+    // ==========================================
+
     if (mentor.verificationStatus !== "approved") {
         return {
             allowed: false,
@@ -29,6 +33,10 @@ const checkRecruiterAccess = async (userId) => {
                 "Your mentor account must be approved before using recruitment features.",
         };
     }
+
+    // ==========================================
+    // SUBSCRIPTION CHECK
+    // ==========================================
 
     const subscriptionActive =
         mentor.subscription &&
@@ -45,6 +53,10 @@ const checkRecruiterAccess = async (userId) => {
         };
     }
 
+    // ==========================================
+    // CANDIDATE ACCESS CHECK
+    // ==========================================
+
     if (!mentor.candidateAccess) {
         return {
             allowed: false,
@@ -54,7 +66,10 @@ const checkRecruiterAccess = async (userId) => {
         };
     }
 
-    // Professional & Premium can send invitations
+    // ==========================================
+    // PLAN CHECK
+    // ==========================================
+
     if (
         !["professional", "premium"].includes(
             mentor.subscription.plan
@@ -81,16 +96,31 @@ const checkRecruiterAccess = async (userId) => {
 
 const sendInvitation = async (req, res) => {
     try {
-        const { candidateId, jobId, message } = req.body || {};
+        const {
+            candidateId,
+            jobId,
+            message,
+        } = req.body || {};
+
+        // ==========================================
+        // VALIDATION
+        // ==========================================
 
         if (!candidateId || !jobId || !message) {
             return res.status(400).json({
                 success: false,
-                error: "Candidate ID, Job ID, and Message are required.",
+                error:
+                    "Candidate ID, Job ID, and Message are required.",
             });
         }
 
-        const access = await checkRecruiterAccess(req.user._id);
+        // ==========================================
+        // CHECK MENTOR ACCESS
+        // ==========================================
+
+        const access = await checkRecruiterAccess(
+            req.user._id
+        );
 
         if (!access.allowed) {
             return res.status(access.status).json({
@@ -99,20 +129,27 @@ const sendInvitation = async (req, res) => {
             });
         }
 
-        // Check candidate/user exists
+        // ==========================================
+        // CHECK CANDIDATE
+        // ==========================================
+
         const candidate = await User.findOne({
             _id: candidateId,
             role: "user",
         });
 
         if (!candidate) {
-            return res.status(444).json({
+            return res.status(404).json({
                 success: false,
-                error: "Candidate not found or role is incorrect.",
+                error:
+                    "Candidate not found or role is incorrect.",
             });
         }
 
-        // Check job exists and belongs to this mentor
+        // ==========================================
+        // CHECK JOB
+        // ==========================================
+
         const job = await Job.findOne({
             _id: jobId,
             mentorId: access.mentor._id,
@@ -121,38 +158,56 @@ const sendInvitation = async (req, res) => {
         if (!job) {
             return res.status(404).json({
                 success: false,
-                error: "Job description not found or does not belong to your account.",
+                error:
+                    "Job description not found or does not belong to your account.",
             });
         }
 
-        // Prevent duplicate pending invitation for the same candidate and job
-        const existingInvite = await Invitation.findOne({
-            candidateId,
-            jobId,
-            status: "pending",
-        });
+        // ==========================================
+        // PREVENT DUPLICATE PENDING INVITATION
+        // ==========================================
+
+        const existingInvite =
+            await Invitation.findOne({
+                candidateId,
+                jobId,
+                status: "pending",
+            });
 
         if (existingInvite) {
             return res.status(409).json({
                 success: false,
-                error: "You already have a pending invitation sent to this candidate for this job position.",
+                error:
+                    "You already have a pending invitation sent to this candidate for this job position.",
             });
         }
 
-        // Create Invitation
-        const invitation = await Invitation.create({
-            mentorId: access.mentor._id,
-            candidateId,
-            jobId,
-            message,
-            status: "pending",
-        });
+        // ==========================================
+        // CREATE INVITATION
+        // ==========================================
 
-        // Log Recruiter Activity
+        const invitation =
+            await Invitation.create({
+                mentorId: access.mentor._id,
+                candidateId,
+                jobId,
+                message: message.trim(),
+                status: "pending",
+
+                // Candidate has not responded yet
+                candidateMessage: "",
+                respondedAt: null,
+            });
+
+        // ==========================================
+        // LOG MENTOR ACTIVITY
+        // ==========================================
+
         await Activity.create({
             userId: req.user._id,
             activityType: "INVITATION_SENT",
-            description: `Sent recruitment invitation to candidate ${candidate.name} for position: ${job.title}`,
+            description:
+                `Sent recruitment invitation to candidate ${candidate.name} for position: ${job.title}`,
             metadata: {
                 invitationId: invitation._id,
                 candidateId,
@@ -160,28 +215,48 @@ const sendInvitation = async (req, res) => {
             },
         });
 
+        // ==========================================
+        // RESPONSE
+        // ==========================================
+
         res.status(201).json({
             success: true,
-            message: "Invitation sent successfully.",
+            message:
+                "Invitation sent successfully.",
             invitation,
         });
     } catch (err) {
-        console.error("Error sending invitation:", err.message);
+        console.error(
+            "Error sending invitation:",
+            err.message
+        );
+
         res.status(500).json({
             success: false,
-            error: "Server error during invitation sending.",
+            error:
+                "Server error during invitation sending.",
         });
     }
 };
 
 // ==========================================
-// GET MENTOR INVITATIONS (Recruiter sent)
+// GET MENTOR INVITATIONS
 // GET /api/mentor/invitations
 // ==========================================
 
-const getMentorInvitations = async (req, res) => {
+const getMentorInvitations = async (
+    req,
+    res
+) => {
     try {
-        const access = await checkRecruiterAccess(req.user._id);
+        // ==========================================
+        // CHECK MENTOR ACCESS
+        // ==========================================
+
+        const access =
+            await checkRecruiterAccess(
+                req.user._id
+            );
 
         if (!access.allowed) {
             return res.status(access.status).json({
@@ -190,24 +265,76 @@ const getMentorInvitations = async (req, res) => {
             });
         }
 
-        const invitations = await Invitation.find({
-            mentorId: access.mentor._id,
-        })
-            .populate("candidateId", "name email")
-            .populate("jobId", "title department location")
-            .sort({ createdAt: -1 });
+        // ==========================================
+        // GET INVITATIONS BELONGING TO THIS MENTOR
+        // ==========================================
 
-        // Transform payload to match what frontend expects
-        const mapped = invitations.map((inv) => ({
-            id: inv._id,
-            candidateId: inv.candidateId?._id || inv.candidateId,
-            name: inv.candidateId?.name || "George",
-            email: inv.candidateId?.email || "george@example.com",
-            jobTitle: inv.jobId?.title || "Software Engineer",
-            message: inv.message,
-            status: inv.status,
-            createdAt: inv.createdAt,
-        }));
+        const invitations =
+            await Invitation.find({
+                mentorId: access.mentor._id,
+            })
+                .populate(
+                    "candidateId",
+                    "name email"
+                )
+                .populate(
+                    "jobId",
+                    "title department location"
+                )
+                .sort({
+                    createdAt: -1,
+                });
+
+        // ==========================================
+        // FORMAT RESPONSE
+        // ==========================================
+
+        const mapped =
+            invitations.map((inv) => ({
+                id: inv._id,
+
+                candidateId:
+                    inv.candidateId?._id ||
+                    inv.candidateId,
+
+                name:
+                    inv.candidateId?.name ||
+                    "Candidate",
+
+                email:
+                    inv.candidateId?.email ||
+                    "candidate@example.com",
+
+                jobTitle:
+                    inv.jobId?.title ||
+                    "Job Position",
+
+                // Mentor's original message
+                message:
+                    inv.message,
+
+                // Candidate's response message
+                candidateMessage:
+                    inv.candidateMessage ||
+                    "",
+
+                // Invitation status
+                status:
+                    inv.status,
+
+                // Invitation sent date
+                createdAt:
+                    inv.createdAt,
+
+                // Candidate response date
+                respondedAt:
+                    inv.respondedAt ||
+                    null,
+            }));
+
+        // ==========================================
+        // RESPONSE
+        // ==========================================
 
         res.json({
             success: true,
@@ -215,56 +342,124 @@ const getMentorInvitations = async (req, res) => {
             invitations: mapped,
         });
     } catch (err) {
-        console.error("Error getting mentor invitations:", err.message);
+        console.error(
+            "Error getting mentor invitations:",
+            err.message
+        );
+
         res.status(500).json({
             success: false,
-            error: "Server error retrieving invitations.",
+            error:
+                "Server error retrieving invitations.",
         });
     }
 };
 
 // ==========================================
-// GET CANDIDATE INVITATIONS (Candidate received)
+// GET CANDIDATE INVITATIONS
 // GET /api/user/invitations
 // ==========================================
 
-const getCandidateInvitations = async (req, res) => {
+const getCandidateInvitations = async (
+    req,
+    res
+) => {
     try {
-        // Ensure user is candidate (role="user")
+        // ==========================================
+        // ENSURE USER IS A CANDIDATE
+        // ==========================================
+
         if (req.user.role !== "user") {
             return res.status(403).json({
                 success: false,
-                error: "Access denied. Only candidates can view received invitations.",
+                error:
+                    "Access denied. Only candidates can view received invitations.",
             });
         }
 
-        const invitations = await Invitation.find({
-            candidateId: req.user._id,
-        })
-            .populate("mentorId", "mentorName companyName companyEmail")
-            .populate("jobId", "title")
-            .sort({ createdAt: -1 });
+        // ==========================================
+        // GET CANDIDATE INVITATIONS
+        // ==========================================
 
-        const mapped = invitations.map((inv) => ({
-            id: inv._id,
-            companyName: inv.mentorId?.companyName || "TechNova Solutions",
-            mentorName: inv.mentorId?.mentorName || "Sarah Jenkins",
-            mentorEmail: inv.mentorId?.companyEmail,
-            jobTitle: inv.jobId?.title || "Backend Engineer",
-            message: inv.message,
-            dateSent: new Date(inv.createdAt).toLocaleDateString(),
-            status: inv.status,
-        }));
+        const invitations =
+            await Invitation.find({
+                candidateId: req.user._id,
+            })
+                .populate(
+                    "mentorId",
+                    "mentorName companyName companyEmail"
+                )
+                .populate(
+                    "jobId",
+                    "title"
+                )
+                .sort({
+                    createdAt: -1,
+                });
+
+        // ==========================================
+        // FORMAT RESPONSE
+        // ==========================================
+
+        const mapped =
+            invitations.map((inv) => ({
+                id: inv._id,
+
+                companyName:
+                    inv.mentorId?.companyName ||
+                    "TechNova Solutions",
+
+                mentorName:
+                    inv.mentorId?.mentorName ||
+                    "Mentor",
+
+                mentorEmail:
+                    inv.mentorId?.companyEmail,
+
+                jobTitle:
+                    inv.jobId?.title ||
+                    "Job Position",
+
+                // Mentor's invitation message
+                message:
+                    inv.message,
+
+                // Candidate's own previous response
+                candidateMessage:
+                    inv.candidateMessage ||
+                    "",
+
+                dateSent:
+                    new Date(
+                        inv.createdAt
+                    ).toLocaleDateString(),
+
+                status:
+                    inv.status,
+
+                respondedAt:
+                    inv.respondedAt ||
+                    null,
+            }));
+
+        // ==========================================
+        // RESPONSE
+        // ==========================================
 
         res.json({
             success: true,
             invitations: mapped,
         });
     } catch (err) {
-        console.error("Error getting candidate invitations:", err.message);
+        console.error(
+            "Error getting candidate invitations:",
+            err.message
+        );
+
         res.status(500).json({
             success: false,
-            error: "Server error retrieving candidate invitations.",
+            error:
+                "Server error retrieving candidate invitations.",
         });
     }
 };
@@ -273,66 +468,237 @@ const getCandidateInvitations = async (req, res) => {
 // UPDATE INVITATION STATUS
 // PATCH /api/user/invitations/:id/status
 // ==========================================
+//
+// Candidate can:
+//
+// ACCEPT + SEND MESSAGE
+// OR
+// DECLINE
+//
+// ==========================================
 
-const updateInvitationStatus = async (req, res) => {
+const updateInvitationStatus = async (
+    req,
+    res
+) => {
     try {
         const { id } = req.params;
-        const { status } = req.body || {};
 
-        if (!status || !["accepted", "declined"].includes(status)) {
+        const {
+            status,
+            candidateMessage = "",
+        } = req.body || {};
+
+        // ==========================================
+        // VALIDATE STATUS
+        // ==========================================
+
+        if (
+            !status ||
+            !["accepted", "declined"].includes(
+                status
+            )
+        ) {
             return res.status(400).json({
                 success: false,
-                error: "Invalid status value. Must be 'accepted' or 'declined'.",
+                error:
+                    "Invalid status value. Must be 'accepted' or 'declined'.",
             });
         }
 
-        // Find invitation
-        const invitation = await Invitation.findById(id).populate("jobId", "title");
+        // ==========================================
+        // ACCEPTED INVITATION MUST HAVE MESSAGE
+        // ==========================================
+
+        if (
+            status === "accepted" &&
+            (!candidateMessage ||
+                !candidateMessage.trim())
+        ) {
+            return res.status(400).json({
+                success: false,
+                error:
+                    "Please enter a message before accepting the invitation.",
+            });
+        }
+
+        // ==========================================
+        // FIND INVITATION
+        // ==========================================
+
+        const invitation =
+            await Invitation.findById(id)
+                .populate(
+                    "jobId",
+                    "title"
+                )
+                .populate(
+                    "mentorId",
+                    "mentorName companyName companyEmail"
+                );
 
         if (!invitation) {
             return res.status(404).json({
                 success: false,
-                error: "Invitation not found.",
+                error:
+                    "Invitation not found.",
             });
         }
 
-        // Verify ownership
-        if (invitation.candidateId.toString() !== req.user._id.toString()) {
+        // ==========================================
+        // VERIFY CANDIDATE OWNERSHIP
+        // ==========================================
+
+        if (
+            invitation.candidateId.toString() !==
+            req.user._id.toString()
+        ) {
             return res.status(403).json({
                 success: false,
-                error: "Not authorized to update this invitation.",
+                error:
+                    "Not authorized to update this invitation.",
             });
         }
 
-        // Update status
-        invitation.status = status;
+        // ==========================================
+        // PREVENT REPEATED RESPONSE
+        // ==========================================
+
+        if (
+            invitation.status !==
+            "pending"
+        ) {
+            return res.status(400).json({
+                success: false,
+                error:
+                    `This invitation has already been ${invitation.status}.`,
+            });
+        }
+
+        // ==========================================
+        // UPDATE STATUS
+        // ==========================================
+
+        invitation.status =
+            status;
+
+        // ==========================================
+        // ACCEPTED
+        // ==========================================
+
+        if (
+            status === "accepted"
+        ) {
+            invitation.candidateMessage =
+                candidateMessage.trim();
+
+            invitation.respondedAt =
+                new Date();
+        }
+
+        // ==========================================
+        // DECLINED
+        // ==========================================
+
+        if (
+            status === "declined"
+        ) {
+            invitation.candidateMessage =
+                "";
+
+            invitation.respondedAt =
+                new Date();
+        }
+
+        // ==========================================
+        // SAVE
+        // ==========================================
+
         await invitation.save();
 
-        // Log Candidate Activity
-        const activityType = status === "accepted" ? "INVITATION_ACCEPTED" : "INVITATION_DECLINED";
+        // ==========================================
+        // LOG CANDIDATE ACTIVITY
+        // ==========================================
+
+        const activityType =
+            status === "accepted"
+                ? "INVITATION_ACCEPTED"
+                : "INVITATION_DECLINED";
+
         await Activity.create({
-            userId: req.user._id,
+            userId:
+                req.user._id,
+
             activityType,
-            description: `${status === "accepted" ? "Accepted" : "Declined"} recruiter invitation for position: ${invitation.jobId?.title || "Job position"}`,
+
+            description:
+                `${status === "accepted"
+                    ? "Accepted"
+                    : "Declined"
+                } recruiter invitation for position: ${invitation.jobId?.title ||
+                "Job position"
+                }`,
+
             metadata: {
-                invitationId: invitation._id,
+                invitationId:
+                    invitation._id,
+
                 status,
+
+                candidateMessage:
+                    status === "accepted"
+                        ? candidateMessage.trim()
+                        : "",
+
+                mentorId:
+                    invitation
+                        .mentorId?._id,
             },
         });
 
+        // ==========================================
+        // RESPONSE
+        // ==========================================
+
         res.json({
             success: true,
-            message: `Invitation successfully ${status}.`,
-            invitation,
+
+            message:
+                status === "accepted"
+                    ? "Invitation accepted and message sent to the mentor."
+                    : "Invitation declined successfully.",
+
+            invitation: {
+                id:
+                    invitation._id,
+
+                status:
+                    invitation.status,
+
+                candidateMessage:
+                    invitation.candidateMessage,
+
+                respondedAt:
+                    invitation.respondedAt,
+            },
         });
     } catch (err) {
-        console.error("Error updating invitation status:", err.message);
+        console.error(
+            "Error updating invitation status:",
+            err.message
+        );
+
         res.status(500).json({
             success: false,
-            error: "Server error updating invitation status.",
+            error:
+                "Server error updating invitation status.",
         });
     }
 };
+
+// ==========================================
+// EXPORT CONTROLLERS
+// ==========================================
 
 module.exports = {
     sendInvitation,

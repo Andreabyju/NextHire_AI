@@ -175,6 +175,7 @@ export default function MentorCandidates() {
           <div className="flex-1">
             <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Evaluate Against Role</label>
             <select
+              id="job-match-select"
               value={selectedJobId}
               onChange={(e) => setSelectedJobId(e.target.value)}
               className="bg-transparent text-sm font-semibold text-white focus:outline-none w-full cursor-pointer"
@@ -417,6 +418,7 @@ function CandidateCard({
           ) : (
             matchData ? (
               <button 
+                id={`view-fit-btn-${candidate.id}`}
                 onClick={onViewMatchDetails}
                 className="w-full py-2 bg-violetAccent/20 hover:bg-violetAccent text-violetAccent-light hover:text-white transition-colors rounded-xl text-xs font-bold text-center flex items-center justify-center gap-1.5"
               >
@@ -424,6 +426,7 @@ function CandidateCard({
               </button>
             ) : (
               <button
+                id={`check-fit-btn-${candidate.id}`}
                 onClick={onCalculateMatch}
                 disabled={isMatching}
                 className="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white transition-colors rounded-xl text-xs font-bold text-center flex items-center justify-center gap-1.5 disabled:opacity-50"
@@ -440,6 +443,7 @@ function CandidateCard({
 
         {isBasicPlan ? (
           <button
+            id={`shortlist-btn-${candidate.id}`}
             onClick={onShortlist}
             className="w-full py-2 bg-slate-800 text-slate-400 hover:text-white rounded-xl text-xs font-semibold transition-colors border border-dashed border-white/10 flex items-center justify-center gap-1.5"
           >
@@ -447,6 +451,7 @@ function CandidateCard({
           </button>
         ) : (
           <button
+            id={`shortlist-btn-${candidate.id}`}
             onClick={onShortlist}
             disabled={isShortlisting}
             className={`w-full py-2 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-1.5 transition-all border ${
@@ -466,6 +471,7 @@ function CandidateCard({
         )}
 
         <Link 
+          id={`view-profile-link-${candidate.id}`}
           to={`/mentor/candidates/${candidate.id}`}
           className="block w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 hover:border-white/20 transition-all text-center text-xs font-semibold"
         >

@@ -4,6 +4,7 @@ import { mentorApi } from '../../services/mentorApi';
 
 export default function MentorProfile() {
   const [profile, setProfile] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -12,6 +13,7 @@ export default function MentorProfile() {
       try {
         const data = await mentorApi.getProfile();
         setProfile(data.mentor);
+        setUserData(data.user);
       } catch (err) {
         setError(err.message || 'Failed to load profile');
       } finally {
@@ -38,8 +40,8 @@ export default function MentorProfile() {
 
       <div className="p-8 rounded-2xl bg-white/5 border border-white/10 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InfoField label="Mentor Name" value={profile?.name} />
-          <InfoField label="Account Email" value={profile?.email} />
+          <InfoField label="Mentor Name" value={profile?.mentorName} />
+          <InfoField label="Account Email" value={userData?.email} />
           <InfoField label="Company Name" value={profile?.companyName} />
           <InfoField label="Industry" value={profile?.industry} />
           <InfoField label="Location" value={profile?.location} />
@@ -51,7 +53,7 @@ export default function MentorProfile() {
         <div>
           <h3 className="text-sm font-medium text-slate-400 mb-2">Company Description</h3>
           <p className="text-white bg-black/20 p-4 rounded-xl border border-white/10 whitespace-pre-wrap">
-            {profile?.description || 'No description provided.'}
+          {profile?.companyDescription || <span className="text-slate-600 italic">No description provided.</span>}
           </p>
         </div>
       </div>

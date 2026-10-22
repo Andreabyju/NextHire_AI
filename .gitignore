@@ -34,3 +34,8 @@ backend/uploads/
 *.njsproj
 *.sln
 *.sw?
+
+# Python & Testing artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/

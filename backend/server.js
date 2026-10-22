@@ -10,12 +10,14 @@ const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
+const adminMentorRoutes = require("./routes/adminMentor");
 const userRoutes = require("./routes/user");
 const geminiRoutes = require("./routes/geminiRoutes");
 const resumeRoutes = require("./routes/resume");
 const mentorRoutes = require("./routes/mentor");
 const mentorCandidateRoutes = require("./routes/mentorCandidate");
 const jobRoutes = require("./routes/job");
+const shortlistRoutes = require("./routes/shortlist");
 
 // ==========================================
 // ADMIN SEED
@@ -63,6 +65,7 @@ app.use("/api/auth", authRoutes);
 // ------------------------------------------
 
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/mentors", adminMentorRoutes);
 
 // ------------------------------------------
 // Normal User Routes
@@ -82,26 +85,50 @@ app.use("/api/gemini", geminiRoutes);
 
 app.use("/api/resume", resumeRoutes);
 
-// ------------------------------------------
-// Mentor Routes
-// ------------------------------------------
+// ==========================================
+// MENTOR ROUTES
+// ==========================================
 //
 // POST /api/mentor/register
 // POST /api/mentor/login
 // GET  /api/mentor/profile
 // GET  /api/mentor/access
 //
-// ------------------------------------------
+// ==========================================
 
 app.use("/api/mentor", mentorRoutes);
+
+// ==========================================
+// MENTOR JOB ROUTES
+// ==========================================
+//
+// GET    /api/mentor/jobs
+// POST   /api/mentor/jobs
+// DELETE /api/mentor/jobs/:id
+//
+// ==========================================
+
 app.use("/api/mentor/jobs", jobRoutes);
 
-// ------------------------------------------
-// Mentor Candidate Database Routes
-// ------------------------------------------
+// ==========================================
+// MENTOR SHORTLIST ROUTES
+// ==========================================
+//
+// GET    /api/mentor/shortlists
+// POST   /api/mentor/shortlists/:candidateId
+// DELETE /api/mentor/shortlists/:candidateId
+//
+// ==========================================
+
+app.use("/api/mentor/shortlists", shortlistRoutes);
+
+// ==========================================
+// MENTOR CANDIDATE DATABASE ROUTES
+// ==========================================
 //
 // GET /api/mentor/candidates
 // GET /api/mentor/candidates/:id
+// POST /api/mentor/candidates/:id/match
 //
 // Security:
 //
@@ -115,7 +142,7 @@ app.use("/api/mentor/jobs", jobRoutes);
 //        ↓
 // candidate access
 //
-// ------------------------------------------
+// ==========================================
 
 app.use(
   "/api/mentor/candidates",
@@ -202,6 +229,10 @@ const startServer = async () => {
 
       console.log(
         `✅ Mentor Candidate API available at http://localhost:${PORT}/api/mentor/candidates`
+      );
+
+      console.log(
+        `✅ Mentor Shortlist API available at http://localhost:${PORT}/api/mentor/shortlists`
       );
     });
   } catch (error) {

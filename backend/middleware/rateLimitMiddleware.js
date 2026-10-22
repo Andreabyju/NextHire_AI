@@ -90,10 +90,10 @@ const createRateLimiter = ({
 // ==========================================
 // LOGIN RATE LIMITER
 // ==========================================
-// 5 attempts per IP per 15 minutes
+// 5 attempts per IP per 15 minutes (100 in development for testing)
 
 const loginLimiter = createRateLimiter({
-    maxRequests: 5,
+    maxRequests: process.env.NODE_ENV === "development" ? 100 : 5,
     windowMs: 15 * 60 * 1000,
     message:
         "Too many login attempts. Please wait 15 minutes before trying again.",
@@ -102,10 +102,10 @@ const loginLimiter = createRateLimiter({
 // ==========================================
 // REGISTER RATE LIMITER
 // ==========================================
-// 3 registration attempts per IP per hour
+// 3 registration attempts per IP per hour (100 in development for testing)
 
 const registerLimiter = createRateLimiter({
-    maxRequests: 3,
+    maxRequests: process.env.NODE_ENV === "development" ? 100 : 3,
     windowMs: 60 * 60 * 1000,
     message:
         "Too many registration attempts from this IP. Please try again in an hour.",
