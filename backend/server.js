@@ -80,99 +80,58 @@ app.use(express.json());
 // ==========================================
 
 // ------------------------------------------
-// Normal Authentication
+// Authentication Routes
 // ------------------------------------------
 
 app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 
 // ------------------------------------------
 // Admin Routes
 // ------------------------------------------
 
 app.use("/api/admin", adminRoutes);
+app.use("/admin", adminRoutes);
+
 app.use("/api/admin/mentors", adminMentorRoutes);
+app.use("/admin/mentors", adminMentorRoutes);
 
 // ------------------------------------------
-// Normal User Routes
+// User Routes
 // ------------------------------------------
 
 app.use("/api/user", userRoutes);
+app.use("/user", userRoutes);
 
 // ------------------------------------------
 // Gemini AI Routes
 // ------------------------------------------
 
 app.use("/api/gemini", geminiRoutes);
+app.use("/gemini", geminiRoutes);
 
 // ------------------------------------------
 // Resume Routes
 // ------------------------------------------
 
 app.use("/api/resume", resumeRoutes);
+app.use("/resume", resumeRoutes);
 
-// ==========================================
-// MENTOR ROUTES
-// ==========================================
-//
-// POST /api/mentor/register
-// POST /api/mentor/login
-// GET  /api/mentor/profile
-// GET  /api/mentor/access
-//
-// ==========================================
+// ------------------------------------------
+// Mentor Routes
+// ------------------------------------------
 
 app.use("/api/mentor", mentorRoutes);
-
-// ==========================================
-// MENTOR JOB ROUTES
-// ==========================================
-//
-// GET    /api/mentor/jobs
-// POST   /api/mentor/jobs
-// DELETE /api/mentor/jobs/:id
-//
-// ==========================================
+app.use("/mentor", mentorRoutes);
 
 app.use("/api/mentor/jobs", jobRoutes);
-
-// ==========================================
-// MENTOR SHORTLIST ROUTES
-// ==========================================
-//
-// GET    /api/mentor/shortlists
-// POST   /api/mentor/shortlists/:candidateId
-// DELETE /api/mentor/shortlists/:candidateId
-//
-// ==========================================
+app.use("/mentor/jobs", jobRoutes);
 
 app.use("/api/mentor/shortlists", shortlistRoutes);
+app.use("/mentor/shortlists", shortlistRoutes);
 
-// ==========================================
-// MENTOR CANDIDATE DATABASE ROUTES
-// ==========================================
-//
-// GET /api/mentor/candidates
-// GET /api/mentor/candidates/:id
-// POST /api/mentor/candidates/:id/match
-//
-// Security:
-//
-// JWT authentication
-//        ↓
-// mentor role
-//        ↓
-// admin approved
-//        ↓
-// active subscription
-//        ↓
-// candidate access
-//
-// ==========================================
-
-app.use(
-  "/api/mentor/candidates",
-  mentorCandidateRoutes
-);
+app.use("/api/mentor/candidates", mentorCandidateRoutes);
+app.use("/mentor/candidates", mentorCandidateRoutes);
 
 // ==========================================
 // HEALTH CHECK
