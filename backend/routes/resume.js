@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 const extractResumeText = require("../services/resumeParser");
 const { analyzePDFFormat } = require("../services/formatAnalyzer");
@@ -15,9 +16,17 @@ const router = express.Router();
 // Multer Storage Configuration
 // ==========================================
 
+const uploadDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, "../uploads"));
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
     },
 
     filename: function (req, file, cb) {
@@ -140,15 +149,23 @@ router.post(
                     "📐 Analyzing resume format..."
                 );
 
-                formatAnalysis =
-                    await analyzePDFFormat(
-                        req.file.path,
-                        resumeText
-                    );
+                try {
+                    formatAnalysis =
+                        await analyzePDFFormat(
+                            req.file.path,
+                            resumeText
+                        );
 
-                console.log(
-                    "✅ Resume format analysis completed."
-                );
+                    console.log(
+                        "✅ Resume format analysis completed."
+                    );
+                } catch (fmtError) {
+                    console.warn(
+                        "⚠️ PDF format analysis failed, proceeding with Gemini AI:",
+                        fmtError.message
+                    );
+                    formatAnalysis = null;
+                }
             } else {
                 console.log(
                     "ℹ️ Format analyzer currently supports PDF files. Skipping PDF format analysis for DOCX."

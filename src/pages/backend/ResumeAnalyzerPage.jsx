@@ -303,15 +303,15 @@ export default function ResumeAnalyzerPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.message || 'Unable to analyze the resume. Please try again.');
+        setError(data.error || data.message || 'Unable to analyze the resume. Please try again.');
         setAnalyzing(false);
         return;
       }
 
       setResult(data);
       fetchHistory();   // refresh history after new analysis
-    } catch {
-      setError('Network error. Please check your connection and try again.');
+    } catch (err) {
+      setError(err?.message ? `Network/Server error: ${err.message}` : 'Network error. Please check your connection and try again.');
     } finally {
       setAnalyzing(false);
     }

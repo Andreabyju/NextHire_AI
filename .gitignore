@@ -19,7 +19,9 @@ dist-ssr/
 backend/.env
 
 # Uploaded user files
-backend/uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 
 # Local configuration
 *.local
