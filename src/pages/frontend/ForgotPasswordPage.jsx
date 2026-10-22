@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMail, FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
+import { API_BASE } from '../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');

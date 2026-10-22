@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
+import { API_URL } from '../services/api';
+
 const AuthContext = createContext(null);
 
 const STORAGE_KEY = 'nexthireai_auth';
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE = API_URL;
+
 
 // ==========================================
 // DECODE JWT PAYLOAD (no verification —

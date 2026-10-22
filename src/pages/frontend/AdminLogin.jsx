@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 import { HiShieldCheck } from 'react-icons/hi2';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE } from '../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 const InputField = ({ icon: Icon, type, placeholder, value, onChange, rightElement, id }) => {
   const [isReadOnly, setIsReadOnly] = React.useState(true);

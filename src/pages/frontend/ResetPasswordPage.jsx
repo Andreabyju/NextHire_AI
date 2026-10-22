@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiLock, FiEye, FiEyeOff, FiArrowLeft, FiCheckCircle, FiAlertCircle, FiShield } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
+import { API_BASE } from '../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 // Password strength meter
 function PasswordStrength({ password }) {

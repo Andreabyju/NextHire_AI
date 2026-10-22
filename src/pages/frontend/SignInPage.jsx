@@ -7,8 +7,8 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { validateEmail, validatePassword } from '../../utils/validations';
+import { API_BASE } from '../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 // ==========================================
 // INPUT FIELD WITH INLINE ERROR

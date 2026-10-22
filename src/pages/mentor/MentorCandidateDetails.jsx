@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiArrowLeft, HiOutlineDocumentText, HiOutlineLockClosed, HiOutlineStar } from 'react-icons/hi';
 import { mentorApi } from '../../services/mentorApi';
+import { API_URL } from '../../services/api';
+
 
 export default function MentorCandidateDetails() {
   const { id } = useParams();
@@ -124,7 +126,7 @@ export default function MentorCandidateDetails() {
       const auth = JSON.parse(localStorage.getItem('nexthireai_auth'));
       const token = auth?.token;
 
-      const response = await fetch(`http://localhost:5000/api/resume/download/${resume.fileName}`, {
+      const response = await fetch(`${API_URL}/resume/download/${resume.fileName}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

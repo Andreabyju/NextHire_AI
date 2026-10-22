@@ -11,8 +11,8 @@ import {
 import { HiSparkles } from 'react-icons/hi2';
 import DashboardPreview from '../../components/DashboardPreview';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE } from '../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 const SIDEBAR_LINKS = [
   { icon: FiHome,      label: 'Overview',       id: 'overview',        path: null },

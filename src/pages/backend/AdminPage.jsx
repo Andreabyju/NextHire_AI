@@ -14,8 +14,8 @@ import {
 } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE } from '../../services/api';
 
-const API_BASE = 'http://localhost:5000';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(iso) {
