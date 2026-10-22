@@ -85,6 +85,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/auth", authRoutes);
+app.use("/api/api/auth", authRoutes);
 
 // ------------------------------------------
 // Admin Routes
@@ -92,9 +93,11 @@ app.use("/auth", authRoutes);
 
 app.use("/api/admin", adminRoutes);
 app.use("/admin", adminRoutes);
+app.use("/api/api/admin", adminRoutes);
 
 app.use("/api/admin/mentors", adminMentorRoutes);
 app.use("/admin/mentors", adminMentorRoutes);
+app.use("/api/api/admin/mentors", adminMentorRoutes);
 
 // ------------------------------------------
 // User Routes
@@ -102,6 +105,7 @@ app.use("/admin/mentors", adminMentorRoutes);
 
 app.use("/api/user", userRoutes);
 app.use("/user", userRoutes);
+app.use("/api/api/user", userRoutes);
 
 // ------------------------------------------
 // Gemini AI Routes
@@ -109,6 +113,7 @@ app.use("/user", userRoutes);
 
 app.use("/api/gemini", geminiRoutes);
 app.use("/gemini", geminiRoutes);
+app.use("/api/api/gemini", geminiRoutes);
 
 // ------------------------------------------
 // Resume Routes
@@ -116,6 +121,7 @@ app.use("/gemini", geminiRoutes);
 
 app.use("/api/resume", resumeRoutes);
 app.use("/resume", resumeRoutes);
+app.use("/api/api/resume", resumeRoutes);
 
 // ------------------------------------------
 // Mentor Routes
@@ -123,15 +129,19 @@ app.use("/resume", resumeRoutes);
 
 app.use("/api/mentor", mentorRoutes);
 app.use("/mentor", mentorRoutes);
+app.use("/api/api/mentor", mentorRoutes);
 
 app.use("/api/mentor/jobs", jobRoutes);
 app.use("/mentor/jobs", jobRoutes);
+app.use("/api/api/mentor/jobs", jobRoutes);
 
 app.use("/api/mentor/shortlists", shortlistRoutes);
 app.use("/mentor/shortlists", shortlistRoutes);
+app.use("/api/api/mentor/shortlists", shortlistRoutes);
 
 app.use("/api/mentor/candidates", mentorCandidateRoutes);
 app.use("/mentor/candidates", mentorCandidateRoutes);
+app.use("/api/api/mentor/candidates", mentorCandidateRoutes);
 
 // ==========================================
 // HEALTH CHECK
