@@ -16,6 +16,13 @@ const {
     registerLimiter,
 } = require("../middleware/rateLimitMiddleware");
 
+const {
+    googleAuth,
+    googleCallback,
+    githubAuth,
+    githubCallback,
+} = require("../controllers/oauthController");
+
 // ==========================================
 // REGISTER
 // POST /api/auth/register
@@ -45,5 +52,17 @@ router.post("/forgot-password", forgotPassword);
 // POST /api/auth/reset-password/:token
 // ==========================================
 router.post("/reset-password/:token", resetPassword);
+
+// ==========================================
+// OAUTH — GOOGLE
+// ==========================================
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallback);
+
+// ==========================================
+// OAUTH — GITHUB
+// ==========================================
+router.get("/github", githubAuth);
+router.get("/github/callback", githubCallback);
 
 module.exports = router;

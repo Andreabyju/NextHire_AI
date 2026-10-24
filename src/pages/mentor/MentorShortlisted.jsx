@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlineTrash, HiOutlineMail, HiOutlineArrowRight, HiOutlineExclamationCircle } from 'react-icons/hi';
 import { mentorApi } from '../../services/mentorApi';
+import { validateMessage } from '../../utils/validations';
 
 export default function MentorShortlisted() {
   const navigate = useNavigate();
@@ -76,7 +77,13 @@ export default function MentorShortlisted() {
   const handleSendInvitation = async (e) => {
     e.preventDefault();
     if (!selectedJobId) {
-      setInvitationError('Please select a job description.');
+      setInvitationError('Please select a job description position.');
+      return;
+    }
+
+    const msgVal = validateMessage(messageText, 'Invitation message', 10);
+    if (!msgVal.valid) {
+      setInvitationError(msgVal.message);
       return;
     }
 
@@ -88,7 +95,7 @@ export default function MentorShortlisted() {
       const response = await mentorApi.sendCandidateInvitation({
         candidateId: activeInvitationCandidate.candidateId,
         jobId: selectedJobId,
-        message: messageText,
+        message: messageText.trim(),
       });
 
       if (response.success) {

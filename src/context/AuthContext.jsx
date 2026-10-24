@@ -46,6 +46,15 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      logout();
+      setSessionExpired(true);
+    };
+    window.addEventListener("nexthireai_auth_expired", handleAuthExpired);
+    return () => window.removeEventListener("nexthireai_auth_expired", handleAuthExpired);
+  }, [logout]);
+
   // ==========================================
   // RESTORE SESSION ON MOUNT
   // ==========================================

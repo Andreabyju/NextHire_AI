@@ -31,7 +31,9 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function () {
+        return !this.authProvider || this.authProvider === "local";
+      },
       minlength: 6,
       select: false,
     },
@@ -96,6 +98,31 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // ==========================================
+    // AUTH PROVIDER & OAUTH IDENTIFIERS
+    // ==========================================
+
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "github"],
+      default: "local",
+    },
+
+    googleId: {
+      type: String,
+      default: null,
+    },
+
+    githubId: {
+      type: String,
+      default: null,
+    },
+
+    avatar: {
+      type: String,
+      default: null,
+    },
   },
 
   {
@@ -108,7 +135,7 @@ const userSchema = new mongoose.Schema(
 // ==========================================
 
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
+  if (!this.password || !this.isModified("password")) {
     return;
   }
 

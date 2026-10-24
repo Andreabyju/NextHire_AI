@@ -20,6 +20,7 @@ const mentorRoutes = require("./routes/mentor");
 const mentorCandidateRoutes = require("./routes/mentorCandidate");
 const jobRoutes = require("./routes/job");
 const shortlistRoutes = require("./routes/shortlist");
+const interviewRoutes = require("./routes/interview");
 
 // ==========================================
 // ADMIN SEED
@@ -142,6 +143,14 @@ app.use("/api/api/mentor/shortlists", shortlistRoutes);
 app.use("/api/mentor/candidates", mentorCandidateRoutes);
 app.use("/mentor/candidates", mentorCandidateRoutes);
 app.use("/api/api/mentor/candidates", mentorCandidateRoutes);
+
+// ------------------------------------------
+// Interview Routes
+// ------------------------------------------
+
+app.use("/api/interview", interviewRoutes);
+app.use("/interview", interviewRoutes);
+app.use("/api/api/interview", interviewRoutes);
 
 // ==========================================
 // HEALTH CHECK

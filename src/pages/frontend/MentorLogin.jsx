@@ -172,7 +172,7 @@ export default function MentorLogin() {
 
     try {
       const data = await mentorApi.login({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
       });
 

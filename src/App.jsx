@@ -23,6 +23,7 @@ import PortalSelectionPage from "./pages/frontend/PortalSelectionPage";
 import MentorLogin        from "./pages/frontend/MentorLogin";
 import MentorRegister     from "./pages/frontend/MentorRegister";
 import AdminLogin         from "./pages/frontend/AdminLogin";
+import OAuthCallback      from "./pages/frontend/OAuthCallback";
 
 // ── Mentor Pages ─────────────────────────────────────────────────────────────
 import MentorLayout         from "./pages/mentor/MentorLayout";
@@ -46,6 +47,10 @@ import AdminActivities      from "./pages/admin/AdminActivities";
 import DashboardPage from "./pages/backend/DashboardPage";
 import ResumeAnalyzerPage from "./pages/backend/ResumeAnalyzerPage";
 import FaceAnalysisPage from "./pages/frontend/FaceAnalysisPage";
+import InterviewSetupPage from "./pages/backend/InterviewSetupPage";
+import InterviewRoomPage from "./pages/backend/InterviewRoomPage";
+import InterviewResultsPage from "./pages/backend/InterviewResultsPage";
+import InterviewHistoryPage from "./pages/backend/InterviewHistoryPage";
 
 
 export default function App() {
@@ -70,6 +75,11 @@ export default function App() {
         <Route
           path="/sign-in"
           element={<SignInPage />}
+        />
+
+        <Route
+          path="/oauth/callback"
+          element={<OAuthCallback />}
         />
 
         <Route
@@ -140,6 +150,47 @@ export default function App() {
           element={
             <ProtectedRoute>
               <FaceAnalysisPage />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ================================================================
+            MOCK INTERVIEW COCKPIT & POSTURE COACH
+        ================================================================= */}
+
+        <Route
+          path="/interview/setup"
+          element={
+            <ProtectedRoute>
+              <InterviewSetupPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/interview/room"
+          element={
+            <ProtectedRoute>
+              <InterviewRoomPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/interview/results/:id"
+          element={
+            <ProtectedRoute>
+              <InterviewResultsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/interview/history"
+          element={
+            <ProtectedRoute>
+              <InterviewHistoryPage />
             </ProtectedRoute>
           }
         />

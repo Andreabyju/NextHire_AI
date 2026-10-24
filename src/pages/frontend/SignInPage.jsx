@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 import { HiSparkles } from 'react-icons/hi2';
@@ -7,7 +7,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { validateEmail, validatePassword } from '../../utils/validations';
-import { API_BASE } from '../../services/api';
+import { API_BASE, API_URL } from '../../services/api';
 
 
 // ==========================================
@@ -77,11 +77,12 @@ const InputField = ({
   );
 };
 
-const SocialButton = ({ icon, label, id }) => (
+const SocialButton = ({ icon, label, id, onClick }) => (
   <button
     id={id}
     type="button"
-    className="flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-sm font-medium group"
+    onClick={onClick}
+    className="flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-sm font-medium group cursor-pointer"
   >
     {icon}
     <span className="text-slate-400 group-hover:text-white transition-colors">{label}</span>
@@ -90,6 +91,7 @@ const SocialButton = ({ icon, label, id }) => (
 
 export default function SignInPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login, isAuthenticated, user, loading, sessionExpired } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -102,6 +104,23 @@ export default function SignInPage() {
 
   // Track which fields have been touched (to show errors on blur)
   const [touched, setTouched] = useState({ email: false, password: false });
+
+  // Check URL for OAuth errors
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setErrors((prev) => ({ ...prev, general: errorParam }));
+    }
+  }, [searchParams]);
+
+  // Social sign in handlers
+  const handleGoogleSignIn = () => {
+    window.location.href = `${API_URL}/auth/google`;
+  };
+
+  const handleGithubSignIn = () => {
+    window.location.href = `${API_URL}/auth/github`;
+  };
 
   // ==========================================
   // REDIRECT IF ALREADY AUTHENTICATED
@@ -183,7 +202,7 @@ export default function SignInPage() {
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
       const data = await res.json();
@@ -283,8 +302,18 @@ export default function SignInPage() {
 
             {/* Social Buttons */}
             <div className="flex gap-3 mb-6">
-              <SocialButton id="signin-google-btn" icon={<FcGoogle size={18} />} label="Google" />
-              <SocialButton id="signin-github-btn" icon={<FaGithub size={18} className="text-white" />} label="GitHub" />
+              <SocialButton
+                id="signin-google-btn"
+                icon={<FcGoogle size={18} />}
+                label="Google"
+                onClick={handleGoogleSignIn}
+              />
+              <SocialButton
+                id="signin-github-btn"
+                icon={<FaGithub size={18} className="text-white" />}
+                label="GitHub"
+                onClick={handleGithubSignIn}
+              />
             </div>
 
             {/* Divider */}

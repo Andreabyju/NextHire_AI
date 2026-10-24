@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlineBriefcase, HiOutlinePlus, HiOutlineTrash, HiOutlineLocationMarker, HiOutlineOfficeBuilding, HiOutlineClock, HiOutlineDocumentText } from 'react-icons/hi';
 import { mentorApi } from '../../services/mentorApi';
+import { validateJobTitle, validateJobDescription } from '../../utils/validations';
 
 export default function MentorJobs() {
   const [jobs, setJobs] = useState([]);
@@ -18,6 +19,10 @@ export default function MentorJobs() {
   const [skills, setSkills] = useState('');
   const [experience, setExperience] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Modal Validation State
+  const [formErrors, setFormErrors] = useState({ title: '', description: '', general: '' });
+  const [formTouched, setFormTouched] = useState({ title: false, description: false });
 
   useEffect(() => {
     fetchJobs();
@@ -36,9 +41,34 @@ export default function MentorJobs() {
     }
   };
 
+  const handleTitleBlur = () => {
+    setFormTouched((prev) => ({ ...prev, title: true }));
+    const { valid, message } = validateJobTitle(title);
+    setFormErrors((prev) => ({ ...prev, title: valid ? '' : message }));
+  };
+
+  const handleDescriptionBlur = () => {
+    setFormTouched((prev) => ({ ...prev, description: true }));
+    const { valid, message } = validateJobDescription(description);
+    setFormErrors((prev) => ({ ...prev, description: valid ? '' : message }));
+  };
+
   const handleCreateJob = async (e) => {
     e.preventDefault();
-    if (!title || !description) return;
+    setFormErrors({ title: '', description: '', general: '' });
+
+    const titleVal = validateJobTitle(title);
+    const descVal = validateJobDescription(description);
+
+    if (!titleVal.valid || !descVal.valid) {
+      setFormErrors({
+        title: titleVal.message,
+        description: descVal.message,
+        general: '',
+      });
+      setFormTouched({ title: true, description: true });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -48,13 +78,13 @@ export default function MentorJobs() {
         .filter((s) => s.length > 0);
 
       const response = await mentorApi.createJob({
-        title,
-        department,
-        location,
+        title: title.trim(),
+        department: department.trim(),
+        location: location.trim(),
         type,
-        description,
+        description: description.trim(),
         skillsRequired: skillsArray,
-        experienceRequired: experience,
+        experienceRequired: experience.trim(),
       });
 
       if (response.success) {
@@ -67,10 +97,15 @@ export default function MentorJobs() {
         setDescription('');
         setSkills('');
         setExperience('');
+        setFormErrors({ title: '', description: '', general: '' });
+        setFormTouched({ title: false, description: false });
         fetchJobs();
       }
     } catch (err) {
-      alert(err.message || 'Failed to create job description.');
+      setFormErrors((prev) => ({
+        ...prev,
+        general: err.message || 'Failed to create job description. Please try again.',
+      }));
     } finally {
       setSaving(false);
     }
@@ -217,18 +252,38 @@ export default function MentorJobs() {
               className="relative w-full max-w-lg bg-[#0d122e] border border-white/15 rounded-3xl p-8 overflow-y-auto max-h-[90vh] shadow-2xl text-left"
             >
               <h2 className="text-2xl font-bold font-space text-white mb-6">Create Job Description</h2>
-              <form onSubmit={handleCreateJob} className="space-y-4">
+
+              {formErrors.general && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs">
+                  {formErrors.general}
+                </div>
+              )}
+
+              <form onSubmit={handleCreateJob} className="space-y-4" noValidate>
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Job Title *</label>
                   <input
                     id="job-title"
                     type="text"
-                    required
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (formTouched.title) {
+                        const { valid, message } = validateJobTitle(e.target.value);
+                        setFormErrors((prev) => ({ ...prev, title: valid ? '' : message }));
+                      }
+                    }}
+                    onBlur={handleTitleBlur}
                     placeholder="e.g. Senior Frontend Developer"
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violetAccent/50"
+                    className={`w-full bg-black/20 border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-all ${
+                      formTouched.title && formErrors.title
+                        ? 'border-red-500/60 focus:border-red-500'
+                        : 'border-white/10 focus:border-violetAccent/50'
+                    }`}
                   />
+                  {formTouched.title && formErrors.title && (
+                    <p className="text-xs text-red-400 mt-1">{formErrors.title}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -272,7 +327,7 @@ export default function MentorJobs() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Experience (Required)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Experience (Optional)</label>
                     <input
                       id="job-experience"
                       type="text"
@@ -300,20 +355,37 @@ export default function MentorJobs() {
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Job Description *</label>
                   <textarea
                     id="job-description"
-                    required
                     rows={4}
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Paste full job description details, responsibilities, and required stack here..."
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violetAccent/50 font-sans"
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      if (formTouched.description) {
+                        const { valid, message } = validateJobDescription(e.target.value);
+                        setFormErrors((prev) => ({ ...prev, description: valid ? '' : message }));
+                      }
+                    }}
+                    onBlur={handleDescriptionBlur}
+                    placeholder="Paste full job description details, responsibilities, and required stack here (min. 20 characters)..."
+                    className={`w-full bg-black/20 border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none font-sans transition-all ${
+                      formTouched.description && formErrors.description
+                        ? 'border-red-500/60 focus:border-red-500'
+                        : 'border-white/10 focus:border-violetAccent/50'
+                    }`}
                   />
+                  {formTouched.description && formErrors.description && (
+                    <p className="text-xs text-red-400 mt-1">{formErrors.description}</p>
+                  )}
                 </div>
 
                 <div className="flex gap-4 pt-4 border-t border-white/5">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-colors text-center"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setFormErrors({ title: '', description: '', general: '' });
+                      setFormTouched({ title: false, description: false });
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-colors text-center cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -321,7 +393,7 @@ export default function MentorJobs() {
                     id="job-submit-btn"
                     type="submit"
                     disabled={saving}
-                    className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm transition-colors text-center disabled:opacity-50"
+                    className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm transition-colors text-center disabled:opacity-50 cursor-pointer"
                   >
                     {saving ? 'Saving...' : 'Save Job'}
                   </button>

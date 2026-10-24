@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiMail, FiLock, FiUser, FiEye, FiEyeOff,
@@ -16,7 +16,7 @@ import {
   validateConfirmPassword,
   passwordStrength,
 } from '../../utils/validations';
-import { API_BASE } from '../../services/api';
+import { API_BASE, API_URL } from '../../services/api';
 
 
 // ==========================================
@@ -83,11 +83,12 @@ const InputField = ({
   );
 };
 
-const SocialButton = ({ icon, label, id }) => (
+const SocialButton = ({ icon, label, id, onClick }) => (
   <button
     id={id}
     type="button"
-    className="flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-sm font-medium group"
+    onClick={onClick}
+    className="flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-sm font-medium group cursor-pointer"
   >
     {icon}
     <span className="text-slate-400 group-hover:text-white transition-colors">{label}</span>
@@ -110,6 +111,7 @@ const CheckItem = ({ met, label }) => (
 
 export default function SignUpPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login, isAuthenticated, user, loading: authLoading } = useAuth();
 
   const [name, setName] = useState('');
@@ -124,6 +126,23 @@ export default function SignUpPage() {
 
   const [errors, setErrors] = useState({ name: '', email: '', password: '', confirm: '', general: '' });
   const [touched, setTouched] = useState({ name: false, email: false, password: false, confirm: false });
+
+  // Check URL for OAuth errors
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setErrors((prev) => ({ ...prev, general: errorParam }));
+    }
+  }, [searchParams]);
+
+  // Social sign up handlers
+  const handleGoogleSignUp = () => {
+    window.location.href = `${API_URL}/auth/google`;
+  };
+
+  const handleGithubSignUp = () => {
+    window.location.href = `${API_URL}/auth/github`;
+  };
 
   // Redirect if already logged in
   useEffect(() => {
@@ -148,7 +167,12 @@ export default function SignUpPage() {
     switch (field) {
       case 'name':    return validateName(value, 'Full name').message;
       case 'email':   return validateEmail(value).message;
-      case 'password': return validatePassword(value, 8).message || (strength < 2 ? 'Choose a stronger password.' : '');
+      case 'password': {
+        const base = validatePassword(value, 8).message;
+        if (base) return base;
+        const { score } = passwordStrength(value);
+        return score < 2 ? 'Choose a stronger password.' : '';
+      }
       case 'confirm': return validateConfirmPassword(password, value).message;
       default: return '';
     }
@@ -291,8 +315,18 @@ export default function SignUpPage() {
 
                   {/* Social Buttons */}
                   <div className="flex gap-3 mb-6">
-                    <SocialButton id="signup-google-btn" icon={<FcGoogle size={18} />} label="Google" />
-                    <SocialButton id="signup-github-btn" icon={<FaGithub size={18} className="text-white" />} label="GitHub" />
+                    <SocialButton
+                      id="signup-google-btn"
+                      icon={<FcGoogle size={18} />}
+                      label="Google"
+                      onClick={handleGoogleSignUp}
+                    />
+                    <SocialButton
+                      id="signup-github-btn"
+                      icon={<FaGithub size={18} className="text-white" />}
+                      label="GitHub"
+                      onClick={handleGithubSignUp}
+                    />
                   </div>
 
                   {/* Divider */}

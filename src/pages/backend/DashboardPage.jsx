@@ -18,10 +18,10 @@ const SIDEBAR_LINKS = [
   { icon: FiHome,      label: 'Overview',       id: 'overview',        path: null },
   { icon: FiBell,      label: 'Recruiter Requests', id: 'recruiter-requests', path: null },
   { icon: FiFileText,  label: 'Resume',          id: 'resume',          path: '/resume-analyzer' },
-  { icon: FiMic,       label: 'Mock Interview',  id: 'mock',            path: null },
+  { icon: FiMic,       label: 'Mock Interview',  id: 'mock',            path: '/interview/setup' },
   { icon: FiCode,      label: 'Assessments',     id: 'assessments',     path: null },
   { icon: FiBarChart2, label: 'Progress',        id: 'progress',        path: null },
-  { icon: FiAward,     label: 'Results',         id: 'results',         path: null },
+  { icon: FiAward,     label: 'Results',         id: 'results',         path: '/interview/history' },
   { icon: FiThumbsUp,  label: 'Recommendations', id: 'recommendations', path: null },
   { icon: FiBookOpen,  label: 'Resources',       id: 'resources',       path: null },
 ];
@@ -573,7 +573,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { icon: FiFileText, label: 'Analyze Resume', desc: 'Upload & get instant AI feedback', color: 'text-blueAccent-light', bg: 'from-blueAccent/15 to-blueAccent/5', border: 'hover:border-blueAccent/40', id: 'analyze-resume', onClick: () => navigate('/resume-analyzer') },
-                { icon: FiMic,      label: 'Start Mock Interview', desc: 'Practice with AI voice coach', color: 'text-violetAccent-light', bg: 'from-violetAccent/15 to-violetAccent/5', border: 'hover:border-violetAccent/40', id: 'start-interview', onClick: null },
+                { icon: FiMic,      label: 'Start Mock Interview', desc: 'Practice with AI voice coach', color: 'text-violetAccent-light', bg: 'from-violetAccent/15 to-violetAccent/5', border: 'hover:border-violetAccent/40', id: 'start-interview', onClick: () => navigate('/interview/setup') },
                 { icon: FiCode,     label: 'Coding Challenge', desc: 'Solve problems with AI hints', color: 'text-pink-400', bg: 'from-pink-600/15 to-pink-600/5', border: 'hover:border-pink-500/40', id: 'coding-challenge', onClick: null },
               ].map(({ icon: Icon, label, desc, color, bg, border, id, onClick }) => (
                 <button

@@ -251,8 +251,19 @@ export default function MentorRegister() {
     try {
       // Confirm password is frontend-only — don't send it
       const { confirmPassword, ...dataToSend } = formData;
+      const cleanedData = {
+        ...dataToSend,
+        mentorName: dataToSend.mentorName.trim(),
+        companyName: dataToSend.companyName.trim(),
+        companyEmail: dataToSend.companyEmail.trim().toLowerCase(),
+        phone: dataToSend.phone ? dataToSend.phone.trim() : undefined,
+        website: dataToSend.website ? dataToSend.website.trim() : undefined,
+        industry: dataToSend.industry.trim(),
+        location: dataToSend.location.trim(),
+        companySize: dataToSend.companySize.trim(),
+      };
 
-      await mentorApi.register(dataToSend);
+      await mentorApi.register(cleanedData);
 
       setSuccess(true);
     } catch (err) {

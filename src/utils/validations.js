@@ -198,3 +198,56 @@ export const validateCompanySize = (size) => {
 
   return { valid: true, message: "" };
 };
+
+/**
+ * Validates a job title.
+ * @param {string} title
+ * @returns {{ valid: boolean, message: string }}
+ */
+export const validateJobTitle = (title) => {
+  const trimmed = (title || "").trim();
+  if (!trimmed) {
+    return { valid: false, message: "Job title is required." };
+  }
+  if (trimmed.length < 3) {
+    return { valid: false, message: "Job title must be at least 3 characters." };
+  }
+  if (trimmed.length > 100) {
+    return { valid: false, message: "Job title must be 100 characters or fewer." };
+  }
+  return { valid: true, message: "" };
+};
+
+/**
+ * Validates a job description.
+ * @param {string} desc
+ * @returns {{ valid: boolean, message: string }}
+ */
+export const validateJobDescription = (desc) => {
+  const trimmed = (desc || "").trim();
+  if (!trimmed) {
+    return { valid: false, message: "Job description is required." };
+  }
+  if (trimmed.length < 20) {
+    return { valid: false, message: "Job description must be at least 20 characters." };
+  }
+  return { valid: true, message: "" };
+};
+
+/**
+ * Validates a message / invitation note.
+ * @param {string} msg
+ * @param {string} [label="Message"]
+ * @param {number} [minLength=5]
+ * @returns {{ valid: boolean, message: string }}
+ */
+export const validateMessage = (msg, label = "Message", minLength = 5) => {
+  const trimmed = (msg || "").trim();
+  if (!trimmed) {
+    return { valid: false, message: `${label} is required.` };
+  }
+  if (trimmed.length < minLength) {
+    return { valid: false, message: `${label} must be at least ${minLength} characters.` };
+  }
+  return { valid: true, message: "" };
+};

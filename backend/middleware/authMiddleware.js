@@ -13,32 +13,35 @@ const User = require("../models/User");
 //
 // ==========================================
 
+const JWT_SECRET = process.env.JWT_SECRET || "nexthireai_super_secret_key_change_in_production";
+
 const protect = async (req, res, next) => {
   try {
     // ==========================================
-    // GET AUTHORIZATION HEADER
+    // GET AUTHORIZATION HEADER (Case-insensitive)
     // ==========================================
 
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization || req.headers.Authorization;
 
-    if (
-      !authHeader ||
-      !authHeader.startsWith("Bearer ")
-    ) {
+    if (!authHeader || !authHeader.trim().toLowerCase().startsWith("bearer ")) {
       return res.status(401).json({
-        error: "Not authorized, no token",
+        error: "Not authorized, no token provided",
+        code: "NO_TOKEN",
       });
     }
 
     // ==========================================
-    // EXTRACT TOKEN
+    // EXTRACT AND SANITIZE TOKEN
+    // Strip "Bearer ", surrounding quotes (common in Postman/copy-paste), and whitespace
     // ==========================================
 
-    const token = authHeader.split(" ")[1];
+    let token = authHeader.replace(/^bearer\s+/i, "").trim();
+    token = token.replace(/^["']|["']$/g, "").trim();
 
     if (!token) {
       return res.status(401).json({
-        error: "Not authorized, no token",
+        error: "Not authorized, token is empty",
+        code: "NO_TOKEN",
       });
     }
 
@@ -46,21 +49,42 @@ const protect = async (req, res, next) => {
     // VERIFY JWT
     // ==========================================
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (jwtErr) {
+      if (jwtErr.name === "TokenExpiredError") {
+        return res.status(401).json({
+          error: "Session expired. Please log in again.",
+          code: "TOKEN_EXPIRED",
+        });
+      }
+      return res.status(401).json({
+        error: "Not authorized, token invalid",
+        code: "TOKEN_INVALID",
+      });
+    }
+
+    // Support id, _id, or userId in payload
+    const userId = decoded.id || decoded._id || decoded.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        error: "Not authorized, token payload invalid",
+        code: "TOKEN_INVALID",
+      });
+    }
 
     // ==========================================
     // FIND USER
     // ==========================================
 
-    const user = await User.findById(decoded.id)
-      .select("-password");
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(401).json({
         error: "User no longer exists",
+        code: "USER_NOT_FOUND",
       });
     }
 
@@ -71,6 +95,7 @@ const protect = async (req, res, next) => {
     if (user.accountStatus === "suspended") {
       return res.status(403).json({
         error: "Your account has been suspended",
+        code: "ACCOUNT_SUSPENDED",
       });
     }
 
@@ -83,13 +108,11 @@ const protect = async (req, res, next) => {
     next();
 
   } catch (error) {
-    console.error(
-      "Authentication error:",
-      error.message
-    );
+    console.error("Authentication middleware error:", error);
 
     return res.status(401).json({
       error: "Not authorized, token invalid",
+      code: "AUTH_ERROR",
     });
   }
 };

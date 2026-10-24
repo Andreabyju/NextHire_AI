@@ -18,10 +18,10 @@ import { API_BASE } from '../../services/api';
 const SIDEBAR_LINKS = [
   { icon: FiHome, label: 'Overview', id: 'overview', path: '/dashboard' },
   { icon: FiFileText, label: 'Resume', id: 'resume', path: '/resume-analyzer' },
-  { icon: FiMic, label: 'Mock Interview', id: 'mock', path: '/dashboard' },
+  { icon: FiMic, label: 'Mock Interview', id: 'mock', path: '/interview/setup' },
   { icon: FiCode, label: 'Assessments', id: 'assessments', path: '/dashboard' },
   { icon: FiBarChart2, label: 'Progress', id: 'progress', path: '/dashboard' },
-  { icon: FiAward, label: 'Results', id: 'results', path: '/dashboard' },
+  { icon: FiAward, label: 'Results', id: 'results', path: '/interview/history' },
   { icon: FiThumbsUp, label: 'Recommendations', id: 'recommendations', path: '/dashboard' },
   { icon: FiBookOpen, label: 'Resources', id: 'resources', path: '/dashboard' },
 ];
@@ -240,9 +240,22 @@ export default function ResumeAnalyzerPage() {
 
     if (!file) return;
 
-    const allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!allowed.includes(file.type)) {
-      setError('Invalid file type. Please upload a PDF or DOCX file.');
+    const allowedMimes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['pdf', 'docx', 'doc'];
+
+    const isValidType = allowedMimes.includes(file.type) || allowedExtensions.includes(fileExtension);
+
+    if (!isValidType) {
+      setError('Invalid file format. Please upload a PDF or Word document (.pdf, .docx).');
+      return;
+    }
+    if (file.size === 0) {
+      setError('The selected file is empty. Please choose a valid resume document.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -282,7 +295,11 @@ export default function ResumeAnalyzerPage() {
 
   // ── Upload & analyze ────────────────────────────────────────────────────────
   const handleAnalyze = async () => {
-    if (!selectedFile || analyzing) return;
+    if (!selectedFile) {
+      setError('Please select or drag a resume file (PDF or DOCX) to analyze.');
+      return;
+    }
+    if (analyzing) return;
     setError('');
     setResult(null);
     setViewingRecord(null);

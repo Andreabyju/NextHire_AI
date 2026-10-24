@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Activity = require("../models/Activity");
 const ResumeAnalysis = require("../models/ResumeAnalysis");
+const Interview = require("../models/Interview");
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 const logActivity = async (userId, activityType, description, metadata = {}) => {
@@ -141,9 +142,8 @@ const getMyStats = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const [loginCount, interviewCount, assessmentCount, resumeCount, latestResume, bestResume] = await Promise.all([
+    const [loginCount, assessmentCount, resumeCount, latestResume, bestResume, interviews] = await Promise.all([
       Activity.countDocuments({ userId, activityType: "USER_LOGIN" }),
-      Activity.countDocuments({ userId, activityType: "INTERVIEW_COMPLETED" }),
       Activity.countDocuments({ userId, activityType: "ASSESSMENT_COMPLETED" }),
       Activity.countDocuments({ userId, activityType: "RESUME_UPLOADED" }),
       ResumeAnalysis.findOne({ userId })
@@ -152,7 +152,25 @@ const getMyStats = async (req, res) => {
       ResumeAnalysis.findOne({ userId })
         .sort({ overallScore: -1 })
         .select("overallScore"),
+      Interview.find({ userId }).select("overallScore averagePostureScore createdAt"),
     ]);
+
+    const interviewCount = interviews.length;
+    let averageScore = null;
+    let highestScore = null;
+    let averagePostureScore = null;
+
+    if (interviewCount > 0) {
+      const totalScore = interviews.reduce((sum, item) => sum + (item.overallScore || 0), 0);
+      averageScore = Math.round(totalScore / interviewCount);
+      highestScore = Math.max(...interviews.map((item) => item.overallScore || 0));
+
+      const postureInterviews = interviews.filter((item) => typeof item.averagePostureScore === "number");
+      if (postureInterviews.length > 0) {
+        const postureSum = postureInterviews.reduce((sum, item) => sum + item.averagePostureScore, 0);
+        averagePostureScore = Math.round(postureSum / postureInterviews.length);
+      }
+    }
 
     res.json({
       loginCount,
@@ -164,13 +182,13 @@ const getMyStats = async (req, res) => {
       latestResumeAtsScore: latestResume?.atsScore ?? null,
       latestResumeFile:   latestResume?.originalFileName ?? null,
       latestResumeDate:   latestResume?.createdAt ?? null,
-      // These will be populated when Interview/Assessment models are built
-      averageScore: null,
-      highestScore: null,
-      overallProgress: Math.min(100, interviewCount * 5 + assessmentCount * 3 + (resumeCount > 0 ? 10 : 0)),
-      technicalPerformance: 0,
-      communicationPerformance: 0,
-      aptitudePerformance: 0,
+      averageScore,
+      highestScore,
+      averagePostureScore,
+      overallProgress: Math.min(100, interviewCount * 10 + assessmentCount * 5 + (resumeCount > 0 ? 20 : 0)),
+      technicalPerformance: averageScore || 0,
+      communicationPerformance: averagePostureScore || 0,
+      aptitudePerformance: bestResume?.overallScore || 0,
     });
   } catch (error) {
     console.error("getMyStats error:", error.message);

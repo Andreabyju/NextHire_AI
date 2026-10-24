@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HiArrowLeft, HiOutlineDocumentText, HiOutlineLockClosed, HiOutlineStar } from 'react-icons/hi';
 import { mentorApi } from '../../services/mentorApi';
 import { API_URL } from '../../services/api';
+import { validateMessage } from '../../utils/validations';
 
 
 export default function MentorCandidateDetails() {
@@ -85,7 +86,13 @@ export default function MentorCandidateDetails() {
   const handleSendInvitation = async (e) => {
     e.preventDefault();
     if (!selectedJobId) {
-      setInvitationError('Please select a job description.');
+      setInvitationError('Please select a job description position.');
+      return;
+    }
+
+    const msgVal = validateMessage(messageText, 'Invitation message', 10);
+    if (!msgVal.valid) {
+      setInvitationError(msgVal.message);
       return;
     }
     
@@ -97,7 +104,7 @@ export default function MentorCandidateDetails() {
       const response = await mentorApi.sendCandidateInvitation({
         candidateId: id,
         jobId: selectedJobId,
-        message: messageText,
+        message: messageText.trim(),
       });
       if (response.success) {
         setInvitationSuccess('Invitation sent successfully!');
